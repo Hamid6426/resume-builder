@@ -9,6 +9,7 @@
     "start": "node build/index.js",
     "db:init": "npx prisma migrate dev --name init",
     "db:migrate": "npx prisma migrate dev",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node prisma/seed.ts",
+    "db:push": "npx prisma db push --preview-feature"
   }
 }
