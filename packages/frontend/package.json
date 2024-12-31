@@ -1,0 +1,12 @@
+{
+  "name": "@scope/frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+  "dev": "vite",
+  "build": "vite build --outDir=../backend/src/public",
+  "serve": "vite serve"
+}
+}
