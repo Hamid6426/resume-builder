@@ -3,7 +3,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
-import { authenticateUser } from 'src/middleswares/auth.middleware';
+import { authenticateUser } from 'src/middleswares/authMiddleware';
 
 const prisma = new PrismaClient();
 

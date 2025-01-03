@@ -1,3 +1,5 @@
+// RUN ONLY FOR DUMMY DATA ONLY ONCE IN THE BEGINNING AND DONT LOST YOUR WORK BY DOING THIS
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -8,8 +10,11 @@ async function seed() {
     // Add seed data here
     await prisma.user.create({
       data: {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
+        email: 'user@example.com',
+        password: 'password123',
+        userName: 'John1234',
+        firstName: 'John',
+        lastName: 'Doe',
       },
     });
     console.log('Database seeding successful!');

@@ -1,16 +1,14 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 
-const App = ({}) => {
+import Navbar from "../components/Navbar"
+
+function App() {
   return (
-    <div>
-      
+    <div className="">
+      <Navbar/>
     </div>
   )
 }
 
-App.propTypes = {
-
-}
-
 export default App
+

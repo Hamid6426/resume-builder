@@ -17,7 +17,7 @@
     "db:migrate": "yarn workspace @scope/backend db:migrate",
     "db:seed": "yarn workspace @scope/backend db:seed",
     "db:push": "yarn workspace @scope/backend db:push",
-    "start": "concurrently \"yarn workspace @scope/backend dev\" \"yarn workspace @scope/frontend dev\""
+    "dev": "concurrently \"yarn workspace @scope/backend dev\" \"yarn workspace @scope/frontend dev\""
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
@@ -40,6 +40,7 @@
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.1",
     "tailwindcss": "^3.4.17",
     "ws": "^8.18.0"
   },

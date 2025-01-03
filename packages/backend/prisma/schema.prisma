@@ -1,20 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// ======================================================================= //
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// STEP 1 = DATABASE SETUP
 
-// After setting up this generator, datasource, a model and DATABASE_URL
-// 
-// npx prisma migrate dev --name init
-
-// database/prisma/schema.prisma
-// const env = require('../config/env');
-
-// datasource db {
-//   provider = "postgresql"
-//   url      = env.DATABASE_URL
-// }
+// ======================================================================= //
 
 generator client {
   provider        = "prisma-client-js"
@@ -26,9 +14,190 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ======================================================================= //
+
+// STEP 2 = DEFINE MODELS
+
+// ======================================================================= //
+
+// User model represents an individual user of the platform.
+// It includes details such as personal information, account details, and relationships to the user's resumes, job profiles, cloud storage, and other related entities.
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  password String 
-  name  String?
+  id               String           @id @default(cuid()) // Unique user ID
+  email            String           @unique // User email (unique)
+  password         String // User's password
+  userName         String // User Name like user1234
+  firstName        String // User's first name
+  lastName         String // User's last name
+  totalResumes     Int              @default(0) // Total number of resumes created by the user
+  accountCreatedAt DateTime         @default(now()) // Date when the account was created
+  accountUpdatedAt DateTime         @updatedAt // Date when the account was last updated
+  resumes          Resume[] // One-to-many relationship: The resumes created by the user
+  jobProfiles      JobProfile[] // One-to-many relationship: The job profiles created by the user
+  cloudStorage     CloudStorage[] // One-to-many relationship: The cloud storage files linked to the user
+  aiUsage          AIUsage[] // One-to-many relationship: AI usage history by the user
+  sharedResumes    ResumeShareLog[] // One-to-many relationship: Logs of resumes shared by the user
 }
+
+// Enum for resume export formats. Defines the file formats in which a resume can be exported.
+enum ExportFormat {
+  PDF
+  DOCX
+  // Additional formats can be added in the future
+}
+
+// Resume model represents a user's resume. It includes details such as resume title, sections, associated job profile, and export format.
+// It also tracks views, downloads, and versioning of the resume.
+model Resume {
+  id               String           @id @default(cuid()) // Unique resume ID
+  title            String // Title of the resume
+  user             User             @relation(fields: [userId], references: [id]) // One-to-many relationship with User
+  userId           String // User ID (foreign key)
+  sections         ResumeSection[] // One-to-many relationship: Sections included in the resume
+  jobProfile       JobProfile?      @relation(fields: [jobProfileId], references: [id]) // Optional relationship with a job profile
+  jobProfileId     String? // Job profile ID (foreign key)
+  templateName     String // Name of the resume template
+  exportFormat     ExportFormat // Format for exporting the resume (PDF, DOCX, etc.)
+  branding         Branding[] // One-to-many relationship: Branding elements applied to the resume
+  views            Int              @default(0) // Number of views for the resume
+  downloads        Int              @default(0) // Number of downloads for the resume
+  templateUniqueId String? // Optional unique identifier for the resume template
+  createdAt        DateTime         @default(now()) // Date when the resume was created
+  updatedAt        DateTime         @updatedAt // Date when the resume was last updated
+  resumeVersions   ResumeHistory[] // One-to-many relationship: History of resume versions
+  sharedResumes    ResumeShareLog[] // One-to-many relationship: Log of times the resume was shared
+
+  @@index([userId, title]) // Index for user-specific resume search
+  @@index([templateUniqueId]) // Index for better performance on template-specific queries
+}
+
+// ResumeSection model represents a section within a resume, including the section title, content, and its order in the resume.
+// This allows the resume to be composed of multiple sections in a flexible way.
+model ResumeSection {
+  id             String @id @default(cuid()) // Unique section ID
+  resume         Resume @relation(fields: [resumeId], references: [id]) // Relationship with the Resume model
+  resumeId       String // Resume ID (foreign key)
+  sectionTitle   String // Title of the section (e.g., "Work Experience", "Education")
+  sectionContent String // Content of the section
+  sectionOrder   Int // Order of the section in the resume
+
+  @@unique([resumeId, sectionOrder]) // Ensures unique order of sections in a resume
+}
+
+// JobProfile model represents a job profile that a user may create. It includes the title, industry type, skills, and a description of the profile.
+// It is associated with resumes that are tailored to a specific job profile.
+model JobProfile {
+  id                 String   @id @default(cuid()) // Unique job profile ID
+  title              String // Job profile title (e.g., "Software Engineer")
+  user               User     @relation(fields: [userId], references: [id]) // Relationship with the User model
+  userId             String // User ID (foreign key)
+  industryType       String // Type of industry (e.g., "Technology", "Finance")
+  skills             Skill[] // One-to-many relationship: Skills associated with this job profile
+  profileDescription String // Description of the job profile
+  associatedResumes  Resume[] // One-to-many relationship: Resumes associated with this job profile
+  createdAt          DateTime @default(now()) // Date when the job profile was created
+  updatedAt          DateTime @updatedAt // Date when the job profile was last updated
+}
+
+// Skill model represents a skill that is associated with one or more job profiles. Each skill has a unique name.
+model Skill {
+  id                 String       @id @default(cuid()) // Unique skill ID
+  name               String       @unique // Name of the skill
+  relatedJobProfiles JobProfile[] // One-to-many relationship: Job profiles that require this skill
+}
+
+// Branding model represents branding elements (such as logos, headers, or QR codes) associated with a resume.
+// This allows each resume to have customized branding elements that align with a user's or company's branding guidelines.
+model Branding {
+  id             String  @id @default(cuid()) // Unique branding ID
+  resume         Resume  @relation(fields: [resumeId], references: [id]) // Relationship with the Resume model
+  resumeId       String // Resume ID (foreign key)
+  brandingLogo   String? // Optional field for a branding logo
+  brandingHeader String? // Optional field for a branding header
+  qrCodeImage    String? // Optional field for a QR code image
+}
+
+// ResumeHistory model tracks changes made to a resume over time. It includes version content and the timestamp of when the version was created.
+// This allows users to view and revert to previous versions of their resumes.
+model ResumeHistory {
+  id               String   @id @default(cuid()) // Unique history entry ID
+  resume           Resume   @relation(fields: [resumeId], references: [id]) // Relationship with the Resume model
+  resumeId         String // Resume ID (foreign key)
+  versionContent   String // Content of the resume at this version
+  versionCreatedAt DateTime @default(now()) // Date when this version was created
+}
+
+// ResumeShareLog model tracks when a resume is shared, who shared it, and the recipient's contact details.
+// This log provides an audit trail for shared resumes, including when the resume was shared and when it expires.
+model ResumeShareLog {
+  id                    String    @id @default(cuid()) // Unique share log ID
+  resume                Resume    @relation(fields: [resumeId], references: [id]) // Relationship with the Resume model
+  resumeId              String // Resume ID (foreign key)
+  resumeSharer          User      @relation(fields: [sharerId], references: [id]) // Relationship with the User model (who shared the resume)
+  sharerId              String // User ID of the person who shared the resume
+  recruiterContactEmail String // Email address of the recruiter who receives the resume
+  sharedTimestamp       DateTime  @default(now()) // Timestamp when the resume was shared
+  expiryDate            DateTime? // Optional expiry date for the shared link
+}
+
+// SkillSuggestion model represents suggestions for skills and industries based on user activity or other recommendations.
+// It includes the suggested industry and the list of suggested skills.
+model SkillSuggestion {
+  id                String   @id @default(cuid()) // Unique suggestion ID
+  suggestedIndustry String // Suggested industry for the skills
+  suggestedSkills   String[] // List of suggested skills for the industry
+  createdAt         DateTime @default(now()) // Date when the suggestion was created
+}
+
+// CloudStorage model represents cloud storage files associated with a user.
+// Each file has a storage path and file name, which are linked to the user who uploaded them.
+model CloudStorage {
+  id              String   @id @default(cuid()) // Unique storage file ID
+  user            User     @relation(fields: [userId], references: [id]) // Relationship with the User model
+  userId          String // User ID (foreign key)
+  storagePath     String // Path to the file in cloud storage
+  storageFileName String // Name of the file in cloud storage
+  createdAt       DateTime @default(now()) // Date when the file was uploaded
+  updatedAt       DateTime @updatedAt // Date when the file was last updated
+}
+
+// Enum for AI features that are available for use by users.
+// It includes resume analysis and job matching features, which can be tracked by AI usage.
+enum Feature {
+  RESUME_ANALYSIS
+  JOB_MATCHING
+}
+
+// AIUsage model tracks the usage of AI features by users.
+// It includes the feature used, the number of tokens consumed, and the timestamp when the feature was used.
+model AIUsage {
+  id             String   @id @default(cuid()) // Unique AI usage entry ID
+  user           User     @relation(fields: [userId], references: [id]) // Relationship with the User model
+  userId         String // User ID (foreign key)
+  aiFeature      Feature // AI feature that was used (e.g., Resume Analysis, Job Matching)
+  tokensConsumed Int      @default(0) // Number of tokens consumed during the feature usage
+  usageTimestamp DateTime @default(now()) // Timestamp when the AI feature was used
+}
+
+// ======================================================================= //
+
+// STEP 3 = AFTER CREATING MODELS
+
+// ======================================================================= //
+
+// Allow application to interact with the DB
+// npx prisma generate
+
+// Apply schema changes to DB
+// npx prisma migrate dev --name init
+// --name = give migration a name
+
+// Generate SQL migration files.
+// Apply them to the database.
+// Sync your Prisma schema with the database.
+
+// Use pgAdmin to inspect the DB
+// In this case, we will use NEON Dashboard
+
+// ================================================================================================================ //
+// ================================================================================================================ //
