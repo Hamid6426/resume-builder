@@ -11,10 +11,11 @@ const seedDatabase = async () => {
       const user2 = uuidv4();
 
       await tx`
-        INSERT INTO users (id, name, email, password) VALUES
-        (${user1}, 'John Doe', 'john@example.com', 'hashedpassword1'),
-        (${user2}, 'Jane Smith', 'jane@example.com', 'hashedpassword2')
+        INSERT INTO users (id, name, username, email, password) VALUES
+        (${user1}, 'John Doe', 'johndoe123', 'john@example.com', 'hashedpassword1'),
+        (${user2}, 'Jane Smith', 'jane.123', 'jane@example.com', 'hashedpassword2')
         ON CONFLICT (email) DO NOTHING;
+        ON CONFLICT (username) DO NOTHING;
       `;
 
       // Create Resumes
@@ -64,9 +65,9 @@ const seedDatabase = async () => {
       `;
     });
 
-    console.log("✅ Dummy data inserted successfully");
+    console.log("Dummy data inserted successfully");
   } catch (err) {
-    console.error("❌ Error seeding database:", err);
+    console.error("Error seeding database:", err);
   }
 };
 
