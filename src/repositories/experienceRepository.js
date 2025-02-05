@@ -1,10 +1,10 @@
-import sql from './db';
+const sql = require('../config/dbConfig');
 
 class ExperienceRepository {
   
   async createExperience(experience) {
     const { resumeId, company, position, startDate, endDate, description, orderIndex } = experience;
-    const result = await sql`
+    const result = await this.client`
       INSERT INTO experiences (resume_id, company, position, start_date, end_date, description, order_index)
       VALUES (${resumeId}, ${company}, ${position}, ${startDate}, ${endDate}, ${description}, ${orderIndex})
       RETURNING *;
@@ -13,14 +13,14 @@ class ExperienceRepository {
   }
 
   async getExperienceById(id) {
-    const result = await sql`
+    const result = await this.client`
       SELECT * FROM experiences WHERE id = ${id};
     `;
     return result[0];
   }
 
   async getExperiencesByResumeId(resumeId) {
-    const result = await sql`
+    const result = await this.client`
       SELECT * FROM experiences WHERE resume_id = ${resumeId};
     `;
     return result;
@@ -28,7 +28,7 @@ class ExperienceRepository {
 
   async updateExperience(id, experience) {
     const { company, position, startDate, endDate, description, orderIndex } = experience;
-    const result = await sql`
+    const result = await this.client`
       UPDATE experiences SET company = ${company}, position = ${position}, start_date = ${startDate}, end_date = ${endDate}, description = ${description}, order_index = ${orderIndex}, updated_at = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];

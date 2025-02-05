@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axiosInstance from '../utils/axiosConfig';
+import axiosInstance from '@/utils/axiosConfig';
 
 const ResumeForm = ({ resume, onSubmit }) => {
   const [title, setTitle] = useState(resume?.title || '');

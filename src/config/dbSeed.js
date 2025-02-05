@@ -1,75 +1,83 @@
-import sql from './db';
-import { v4 as uuidv4 } from 'uuid'; // Generate UUIDs
+const connectDB = require('./dbConfig');
 
 const seedDatabase = async () => {
   try {
-    console.log("🌱 Seeding database with dummy data...");
 
-    await sql.begin(async (tx) => {
-      // Create Users
-      const user1 = uuidv4();
-      const user2 = uuidv4();
+    console.log("Seeding database...");
+    const db = sql();
 
-      await tx`
-        INSERT INTO users (id, name, username, email, password) VALUES
-        (${user1}, 'John Doe', 'johndoe123', 'john@example.com', 'hashedpassword1'),
-        (${user2}, 'Jane Smith', 'jane.123', 'jane@example.com', 'hashedpassword2')
-        ON CONFLICT (email) DO NOTHING;
-        ON CONFLICT (username) DO NOTHING;
-      `;
+    // Insert initial users
+    await db`
+      INSERT INTO users (name, username, email, password)
+      VALUES
+        ('John Doe', 'johndoe', 'john.doe@example.com', 'password1'),
+        ('Jane Smith', 'janesmith', 'jane.smith@example.com', 'password2'),
+        ('Alice Johnson', 'alicej', 'alice.johnson@example.com', 'password3');
+    `;
 
-      // Create Resumes
-      const resume1 = uuidv4();
-      const resume2 = uuidv4();
+    // Insert initial resumes
+    await db`
+      INSERT INTO resumes (user_id, title, summary)
+      VALUES
+        ((SELECT id FROM users WHERE username = 'johndoe'), 'John Doe Resume', 'Experienced software engineer...'),
+        ((SELECT id FROM users WHERE username = 'janesmith'), 'Jane Smith Resume', 'Skilled project manager...'),
+        ((SELECT id FROM users WHERE username = 'alicej'), 'Alice Johnson Resume', 'Creative graphic designer...');
+    `;
 
-      await tx`
-        INSERT INTO resumes (id, user_id, title, summary) VALUES
-        (${resume1}, ${user1}, 'Software Engineer Resume', 'Experienced in full-stack development'),
-        (${resume2}, ${user2}, 'Data Scientist Resume', 'Expert in machine learning and analytics')
-        ON CONFLICT (id) DO NOTHING;
-      `;
+    // Insert initial sections
+    await db`
+      INSERT INTO sections (resume_id, type, order_index)
+      VALUES
+        ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Work Experience', 1),
+        ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Education', 1),
+        ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Skills', 1);
+    `;
 
-      // Add Experience
-      await tx`
-        INSERT INTO experiences (id, resume_id, company, position, start_date, end_date, description, order_index) VALUES
-        (${uuidv4()}, ${resume1}, 'TechCorp', 'Frontend Developer', '2020-01-01', '2022-06-01', 'Developed React apps', 1),
-        (${uuidv4()}, ${resume1}, 'DevStudio', 'Backend Developer', '2022-07-01', NULL, 'Built scalable APIs', 2),
-        (${uuidv4()}, ${resume2}, 'AI Labs', 'Data Scientist', '2019-05-01', '2021-12-31', 'Analyzed datasets', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
+    // Insert initial work experiences
+    await db`
+      INSERT INTO experiences (resume_id, company, position, start_date, end_date, description, order_index)
+      VALUES
+        ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Tech Corp', 'Software Engineer', '2020-01-01', '2023-01-01', 'Developed various applications...', 1),
+        ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Business Inc', 'Project Manager', '2018-01-01', '2022-01-01', 'Managed several projects...', 1);
+    `;
 
-      // Add Education
-      await tx`
-        INSERT INTO education (id, resume_id, school, degree, start_date, end_date, order_index) VALUES
-        (${uuidv4()}, ${resume1}, 'MIT', 'BSc Computer Science', '2016-09-01', '2020-06-01', 1),
-        (${uuidv4()}, ${resume2}, 'Stanford', 'MSc Data Science', '2017-09-01', '2019-06-01', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
+    // Insert initial education
+    await db`
+      INSERT INTO education (resume_id, school, degree, start_date, end_date, order_index)
+      VALUES
+        ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Art University', 'BFA in Graphic Design', '2015-01-01', '2019-01-01', 1),
+        ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Business School', 'MBA', '2014-01-01', '2016-01-01', 1);
+    `;
 
-      // Add Skills
-      await tx`
-        INSERT INTO skills (id, resume_id, skill_name, proficiency, order_index) VALUES
-        (${uuidv4()}, ${resume1}, 'JavaScript', 'Advanced', 1),
-        (${uuidv4()}, ${resume1}, 'React', 'Advanced', 2),
-        (${uuidv4()}, ${resume2}, 'Python', 'Advanced', 1),
-        (${uuidv4()}, ${resume2}, 'Machine Learning', 'Intermediate', 2)
-        ON CONFLICT (id) DO NOTHING;
-      `;
+    // Insert initial skills
+    await db`
+      INSERT INTO skills (resume_id, skill_name, proficiency, order_index)
+      VALUES
+        ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'JavaScript', 'Advanced', 1),
+        ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Photoshop', 'Advanced', 1);
+    `;
 
-      // Add Projects
-      await tx`
-        INSERT INTO projects (id, resume_id, title, description, link, order_index) VALUES
-        (${uuidv4()}, ${resume1}, 'Portfolio Website', 'Built a personal portfolio', 'https://portfolio.com', 1),
-        (${uuidv4()}, ${resume2}, 'ML Model', 'Developed predictive models', 'https://github.com/ml-model', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    });
+    // Insert initial projects
+    await db`
+      INSERT INTO projects (resume_id, title, description, link, order_index)
+      VALUES
+        ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Project Alpha', 'Developed a web application...', 'http://example.com/alpha', 1),
+        ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Design Portfolio', 'Showcase of design work...', 'http://example.com/portfolio', 1);
+    `;
 
-    console.log("Dummy data inserted successfully");
+    // Insert initial activity logs
+    await db`
+      INSERT INTO activity_logs (user_id, action, details)
+      VALUES
+        ((SELECT id FROM users WHERE username = 'johndoe'), 'Login', 'User logged in'),
+        ((SELECT id FROM users WHERE username = 'janesmith'), 'Profile Update', 'Updated profile information');
+    `;
+
+    console.log("Database seeded successfully");
   } catch (err) {
     console.error("Error seeding database:", err);
   }
 };
 
-// Execute function
-seedDatabase().catch((err) => console.error("❌ Unexpected error:", err));
+// Execute seeding function
+seedDatabase().catch((err) => console.error("Unexpected error:", err));

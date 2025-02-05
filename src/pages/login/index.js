@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import axiosInstance from "@/ui/utils/axiosConfig";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Correct import
+import axiosInstance from "@/utils/axiosConfig";
 
-export default function UserLoginPage () {
+export default function UserLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +18,7 @@ export default function UserLoginPage () {
     setSuccess(false);
 
     try {
-      const response = await axiosInstance.post("/users/login", {
+      const response = await axiosInstance.post("/users/auth/login", {
         email,
         password,
       });
@@ -34,10 +34,15 @@ export default function UserLoginPage () {
       // Decode username from token
       const decoded = jwtDecode(token);
       console.log("Decoded token data:", decoded);
+
+      // Ensure token contains username field
       const username = decoded.username;
+      if (!username) {
+        throw new Error("Username not found in token");
+      }
 
       // Redirect to dashboard
-      router.push(`/${username}/dashboard`);
+      router.push(`/${username}`);
     } catch (error) {
       console.error("Error logging in user:", error);
       setErrorMessage(
@@ -47,7 +52,7 @@ export default function UserLoginPage () {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
