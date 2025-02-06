@@ -1,38 +1,54 @@
-// pages/[userName]/dashboard/resumes/[resumeID].js
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import axiosInstance from "@/utils/axiosConfig";
+import Sidebar from "@/components/Sidebar";
 
-const Resume = ({ resume }) => {
+const ResumeDetail = () => {
   const router = useRouter();
-  const { userName, resumeID } = router.query;
+  const { id } = router.query;
+  const [resume, setResume] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (id) {
+      fetchResume();
+    }
+  }, [id]);
+
+  const fetchResume = async () => {
+    try {
+      const response = await axiosInstance.get(`/resumes/id/${id}`);
+      setResume(response.data);
+    } catch (error) {
+      console.error("Error fetching resume:", error);
+      setError("Failed to load resume.");
+    }
+  };
 
   return (
-    <div>
-      <h1>User: {userName}</h1>
-      <h2>Resume ID: {resumeID}</h2>
-      {/* Display the resume content here */}
-      <p>Title: {resume.title}</p>
-      <p>Created At: {resume.createdAt}</p>
-      <p>Updated At: {resume.updatedAt}</p>
-      {/* Add more details as needed */}
-    </div>
+    <main className="relative pl-16 min-h-screen min-w-full bg-white dark:bg-gray-900">
+      <Sidebar />
+
+      <div className="grid min-h-screen p-6 gap-6">
+        <div className="bg-gray-100 rounded-xl dark:bg-gray-800 p-6">
+          {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+          <section>
+            {resume ? (
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">{resume.title}</h1>
+                <p className="text-lg text-gray-700 dark:text-gray-300">{resume.summary}</p>
+                {/* You can add more resume details here */}
+              </div>
+            ) : (
+              <div className="text-center text-gray-900 dark:text-gray-100">
+                <p>Loading resume...</p>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </main>
   );
 };
 
-export async function getServerSideProps({ params }) {
-  // Fetch resume data based on params.userName and params.resumeID
-  const { userName, resumeID } = params;
-  // Replace this with your actual data fetching logic
-  const resume = {
-    title: 'Sample Resume Title',
-    createdAt: '2025-02-01T12:00:00Z',
-    updatedAt: '2025-02-01T12:00:00Z',
-  };
-
-  return {
-    props: {
-      resume,
-    },
-  };
-}
-
-export default Resume;
+export default ResumeDetail;

@@ -1,4 +1,4 @@
-import userRepository from "@/repositories/UserRepository";
+import UserRepository from "@/repositories/UserRepository";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {

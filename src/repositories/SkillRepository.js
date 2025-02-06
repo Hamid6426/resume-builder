@@ -1,11 +1,15 @@
-const sql = require('../config/dbConfig');
+import connectDB from "@/config/dbConfig";
 
 class SkillRepository {
+  constructor() {
+    this.client = connectDB(); // Neon serverless client
+  }
+
   async createSkill(skill) {
-    const { resumeId, skillName, proficiency, orderIndex } = skill;
+    const { resume_id, skill_name, proficiency, order_index } = skill;
     const result = await this.client`
       INSERT INTO skills (resume_id, skill_name, proficiency, order_index)
-      VALUES (${resumeId}, ${skillName}, ${proficiency}, ${orderIndex})
+      VALUES (${resume_id}, ${skill_name}, ${proficiency}, ${order_index})
       RETURNING *;
     `;
     return result[0];
@@ -18,24 +22,47 @@ class SkillRepository {
     return result[0];
   }
 
-  async getSkillsByResumeId(resumeId) {
+  async getAllSkills() {
     const result = await this.client`
-      SELECT * FROM skills WHERE resume_id = ${resumeId};
+      SELECT * FROM skills;
+    `;
+    return result;
+  }
+
+  async getSkillsByResumeId(resume_id) {
+    const result = await this.client`
+      SELECT * FROM skills WHERE resume_id = ${resume_id};
     `;
     return result;
   }
 
   async updateSkill(id, skill) {
-    const { skillName, proficiency, orderIndex } = skill;
+    const { skill_name, proficiency, order_index } = skill;
     const result = await this.client`
-      UPDATE skills SET skill_name = ${skillName}, proficiency = ${proficiency}, order_index = ${orderIndex}, updated_at = NOW() WHERE id = ${id} RETURNING *;
+      UPDATE skills SET 
+        skill_name = ${skill_name},
+        proficiency = ${proficiency},
+        order_index = ${order_index},
+        updated_at = NOW() WHERE id = ${id} RETURNING *;
+    `;
+    return result[0];
+  }
+
+  async patchSkill(id, updates) {
+    const fields = Object.keys(updates).map(
+      (key) => this.client`${this.client(key)} = ${updates[key]}`
+    );
+    const result = await this.client`
+      UPDATE skills SET 
+        ${this.client.join(fields, this.client`, `)},
+        updated_at = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
 
   async deleteSkill(id) {
-    await sql`
-      UPDATE skills SET deleted_at = NOW() WHERE id = ${id};
+    await this.client`
+      DELETE FROM skills WHERE id = ${id};
     `;
   }
 }

@@ -18,15 +18,11 @@ class UserRepository {
     return result[0];
   }
 
-  async loginAdmin(email, password) {
-    const [result] = await this.client`
-      SELECT * FROM admin WHERE email = ${email};
+  async loginAdmin(email) {
+    const result = await this.client`
+      SELECT id, password FROM admin WHERE email = ${email} LIMIT 1;
     `;
-    if (result && (await bcrypt.compare(password, result.password))) {
-      return result;
-    } else {
-      throw new Error("Invalid credentials");
-    }
+    return result[0] || null;
   }
 
   async getAllUsers() {

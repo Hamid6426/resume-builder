@@ -1,69 +1,69 @@
 import connectDB from "@/config/dbConfig";
 
-class SectionRepository {
+class ActivityLogRepository {
   constructor() {
     this.client = connectDB(); // Neon serverless client
   }
 
-  async createSection(section) {
-    const { resume_id, type, order_index } = section;
+  async createActivityLog(activityLog) {
+    const { user_id, action, details } = activityLog;
     const result = await this.client`
-      INSERT INTO sections (resume_id, type, order_index)
-      VALUES (${resume_id}, ${type}, ${order_index})
+      INSERT INTO activity_logs (user_id, action, details)
+      VALUES (${user_id}, ${action}, ${details})
       RETURNING *;
     `;
     return result[0];
   }
 
-  async getSectionById(id) {
+  async getActivityLogById(id) {
     const result = await this.client`
-      SELECT * FROM sections WHERE id = ${id};
+      SELECT * FROM activity_logs WHERE id = ${id};
     `;
     return result[0];
   }
 
-  async getAllSections() {
+  async getAllActivityLogs() {
     const result = await this.client`
-      SELECT * FROM sections;
+      SELECT * FROM activity_logs;
     `;
     return result;
   }
 
-  async getSectionsByResumeId(resume_id) {
+  async getActivityLogsByUserId(user_id) {
     const result = await this.client`
-      SELECT * FROM sections WHERE resume_id = ${resume_id};
+      SELECT * FROM activity_logs WHERE user_id = ${user_id};
     `;
     return result;
   }
 
-  async updateSection(id, section) {
-    const { type, order_index } = section;
+  async updateActivityLog(id, activityLog) {
+    const { action, details } = activityLog;
     const result = await this.client`
-      UPDATE sections SET 
-        type = ${type},
-        order_index = ${order_index},
+      UPDATE activity_logs SET 
+        action = ${action},
+        details = ${details},
         updated_at = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
 
-  async patchSection(id, updates) {
+  async patchActivityLog(id, updates) {
     const fields = Object.keys(updates).map(
       (key) => this.client`${this.client(key)} = ${updates[key]}`
     );
     const result = await this.client`
-      UPDATE sections SET 
+      UPDATE activity_logs SET 
         ${this.client.join(fields, this.client`, `)},
         updated_at = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
 
-  async deleteSection(id) {
+  async deleteActivityLog(id) {
     await this.client`
-      DELETE FROM sections WHERE id = ${id};
+      DELETE FROM activity_logs WHERE id = ${id};
     `;
   }
 }
 
-export default new SectionRepository();
+export default new ActivityLogRepository();

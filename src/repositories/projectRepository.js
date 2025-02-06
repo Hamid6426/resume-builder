@@ -1,12 +1,15 @@
-const sql = require('../config/dbConfig');
+import connectDB from "@/config/dbConfig";
 
 class ProjectRepository {
+  constructor() {
+    this.client = connectDB(); // Neon serverless client
+  }
 
   async createProject(project) {
-    const { resumeId, title, description, link, orderIndex } = project;
+    const { resume_id, title, description, link, order_index } = project;
     const result = await this.client`
-      INSERT INTO projects (resume_id, title, description, link, order_index, created_at, updated_at)
-      VALUES (${resumeId}, ${title}, ${description}, ${link}, ${orderIndex}, NOW(), NOW())
+      INSERT INTO projects (resume_id, title, description, link, order_index)
+      VALUES (${resume_id}, ${title}, ${description}, ${link}, ${order_index})
       RETURNING *;
     `;
     return result[0];
@@ -14,29 +17,53 @@ class ProjectRepository {
 
   async getProjectById(id) {
     const result = await this.client`
-      SELECT * FROM projects WHERE id = ${id} AND deleted_at IS NULL;
+      SELECT * FROM projects WHERE id = ${id};
     `;
     return result[0];
   }
 
-  async getProjectsByResumeId(resumeId) {
+  async getAllProjects() {
     const result = await this.client`
-      SELECT * FROM projects WHERE resume_id = ${resumeId} AND deleted_at IS NULL ORDER BY order_index;
+      SELECT * FROM projects;
+    `;
+    return result;
+  }
+
+  async getProjectsByResumeId(resume_id) {
+    const result = await this.client`
+      SELECT * FROM projects WHERE resume_id = ${resume_id};
     `;
     return result;
   }
 
   async updateProject(id, project) {
-    const { title, description, link, orderIndex } = project;
+    const { title, description, link, order_index } = project;
     const result = await this.client`
-      UPDATE projects SET title = ${title}, description = ${description}, link = ${link}, order_index = ${orderIndex}, updated_at = NOW() WHERE id = ${id} AND deleted_at IS NULL RETURNING *;
+      UPDATE projects SET 
+        title = ${title},
+        description = ${description},
+        link = ${link},
+        order_index = ${order_index},
+        updated_at = NOW() WHERE id = ${id} RETURNING *;
+    `;
+    return result[0];
+  }
+
+  async patchProject(id, updates) {
+    const fields = Object.keys(updates).map(
+      (key) => this.client`${this.client(key)} = ${updates[key]}`
+    );
+    const result = await this.client`
+      UPDATE projects SET 
+        ${this.client.join(fields, this.client`, `)},
+        updated_at = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
 
   async deleteProject(id) {
-    await sql`
-      UPDATE projects SET deleted_at = NOW() WHERE id = ${id};
+    await this.client`
+      DELETE FROM projects WHERE id = ${id};
     `;
   }
 }

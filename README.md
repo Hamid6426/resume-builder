@@ -291,3 +291,22 @@ Stores certifications and awards.
 - **Indexing for Faster Queries:** Index `user_id` and `resume_id` for performance.  
 
 ---
+
+## API ROUTES
+
+api/
+  |-- users/
+    |-- index # GET all
+    |-- auth/
+      |-- register.js # POST for register
+      |-- login.js # POST for login
+    |-- id/
+      |-- [id].js # DELETE
+    |-- [username]/ # NESTING RESUME IN USERNAME?? HOW ABOUT IT?
+      |-- index.js # GET, PUT by username
+      |-- resumes/
+        |-- index.js # GET(all) and POST handler
+        |-- username/
+          |-- [username].js # GET only
+        |-- id
+          |-- [id].js # remaining request
