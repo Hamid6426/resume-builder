@@ -6,13 +6,17 @@ export default async function handler(req, res) {
   await corsMiddleware(req, res);
   await authMiddleware(req, res);
 
-  const { id } = req.query;
+  const { id } = req.query; // it is requesting resume's id
 
   try {
     const resume = await ResumeRepository.getResumeById(id);
     if (!resume) {
       return res.status(404).json({ error: "Resume not found" });
     }
+    if (resume.userId !== req.user?.userId) {
+      return res.status(403).json({ error: "Forbidden: You don't own this resume." });
+    }
+    
 
     switch (req.method) {
       case "GET":

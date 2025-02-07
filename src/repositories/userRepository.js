@@ -6,6 +6,9 @@ class UserRepository {
     this.client = connectDB(); // Neon serverless client
   }
 
+  // User has these fields: { name, username, email, password }
+  // When input: { name, username, email, password } (NO CAMEL CASES HERE)
+
   async createUser(user) {
     const { name, username, email, password } = user;
     const salt = await bcrypt.genSalt(10);
@@ -20,7 +23,7 @@ class UserRepository {
 
   async loginAdmin(email) {
     const result = await this.client`
-      SELECT id, password FROM admin WHERE email = ${email} LIMIT 1;
+      SELECT user_id, password FROM admin WHERE email = ${email} LIMIT 1;
     `;
     return result[0] || null;
   }
@@ -32,9 +35,9 @@ class UserRepository {
     return result;
   }
 
-  async getUserById(id) {
+  async getUserById(user_id) {
     const result = await this.client`
-      SELECT * FROM users WHERE id = ${id};
+      SELECT * FROM users WHERE user_id = ${user_id};
     `;
     return result[0];
   }
@@ -53,7 +56,7 @@ class UserRepository {
     return result[0];
   }
 
-  async updateUser(id, user) {
+  async updateUser(user_id, user) {
     const { name, username, email, password } = user;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -63,12 +66,12 @@ class UserRepository {
         username = ${username},
         email = ${email}, 
         password = ${hashedPassword},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE user_id = ${user_id} RETURNING *;
     `;
     return result[0];
   }
 
-  async patchUser(id, updates) {
+  async patchUser(user_id, updates) {
     if (updates.password) {
       const salt = await bcrypt.genSalt(10);
       updates.password = await bcrypt.hash(updates.password, salt);
@@ -79,14 +82,14 @@ class UserRepository {
     const result = await this.client`
       UPDATE users SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE user_id = ${user_id} RETURNING *;
     `;
     return result[0];
   }
 
-  async deleteUser(id) {
+  async deleteUser(user_id) {
     await this.client`
-      DELETE FROM users WHERE id = ${id};
+      DELETE FROM users WHERE user_id = ${user_id};
     `;
   }
 }

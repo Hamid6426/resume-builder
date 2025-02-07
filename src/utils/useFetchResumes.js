@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axiosInstance from "axios";
-import { jwtDecode } from "jwt-decode";
+import axiosInstance from "@/utils/axiosConfig"; // Adjust the import path as needed
+import { jwtDecode } from "jwt-decode"; // Make sure you have this library installed
 
 const useFetchResumes = () => {
   const [resumes, setResumes] = useState([]);
@@ -9,25 +9,30 @@ const useFetchResumes = () => {
 
   useEffect(() => {
     const fetchResumes = async () => {
-
-
-
       try {
-        const response = await axiosInstance.get(`/resumes/user_id/${user_id}`);
+        const token = localStorage.getItem("token"); // Get token from localStorage
+        if (!token) {
+          throw new Error("No token found.");
+        }
+
+        const decodedToken = jwtDecode(token);
+        const userId = decodedToken.user_id; // Get user_id from the decoded token
+
+        const response = await axiosInstance.get(`/resumes/userId/${userId}`);
         if (response.status === 200) {
           setResumes(response.data);
         } else {
           setError("Failed to fetch resumes.");
         }
       } catch (error) {
-        setError(`Error: ${error.message}`);
+        setError(`${error.message}`);
       } finally {
         setLoading(false);
       }
     };
 
     fetchResumes();
-  }, [user_id]);
+  }, []);
 
   return { resumes, error, loading };
 };

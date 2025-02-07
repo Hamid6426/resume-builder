@@ -6,10 +6,10 @@ class EducationRepository {
   }
 
   async createEducation(education) {
-    const { resume_id, school, degree, start_date, end_date, order_index } = education;
+    const { resumeid, school, degree, startdate, enddate, orderindex } = education;
     const result = await this.client`
-      INSERT INTO education (resume_id, school, degree, start_date, end_date, order_index)
-      VALUES (${resume_id}, ${school}, ${degree}, ${start_date}, ${end_date}, ${order_index})
+      INSERT INTO education (resumeid, school, degree, startdate, enddate, orderindex)
+      VALUES (${resumeid}, ${school}, ${degree}, ${startdate}, ${enddate}, ${orderindex})
       RETURNING *;
     `;
     return result[0];
@@ -29,23 +29,23 @@ class EducationRepository {
     return result;
   }
 
-  async getEducationByResumeId(resume_id) {
+  async getEducationByResumeId(resumeid) {
     const result = await this.client`
-      SELECT * FROM education WHERE resume_id = ${resume_id};
+      SELECT * FROM education WHERE resumeid = ${resumeid};
     `;
     return result;
   }
 
   async updateEducation(id, education) {
-    const { school, degree, start_date, end_date, order_index } = education;
+    const { school, degree, startdate, enddate, orderindex } = education;
     const result = await this.client`
       UPDATE education SET 
         school = ${school},
         degree = ${degree},
-        start_date = ${start_date},
-        end_date = ${end_date},
-        order_index = ${order_index},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        startdate = ${startdate},
+        enddate = ${enddate},
+        orderindex = ${orderindex},
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
@@ -57,7 +57,7 @@ class EducationRepository {
     const result = await this.client`
       UPDATE education SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }

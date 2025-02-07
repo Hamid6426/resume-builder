@@ -1,7 +1,7 @@
 import UserRepository from "@/repositories/UserRepository";
 import corsMiddleware from "@/middlewares/corsMiddleware";
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
   await corsMiddleware(req, res);
@@ -25,12 +25,12 @@ export default async function handler(req, res) {
     }
 
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      { userId: user.user_id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
-    res.status(200).json({ token, username: user.username });
+    res.status(200).json({ token });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error." });

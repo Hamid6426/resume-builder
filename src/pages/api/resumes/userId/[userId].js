@@ -6,12 +6,13 @@ export default async function handler(req, res) {
   await corsMiddleware(req, res);
   await authMiddleware(req, res);
 
-  const { user_id } = req.query;
+  const { userId } = req.query;
+  console.log(`Received request for userId: ${userId}`); 
 
   switch (req.method) {
     case "POST":
       try {
-        const resume = { ...req.body, user_id };
+        const resume = { ...req.body, userId };
         const createdResume = await ResumeRepository.createResume(resume);
         res.status(201).json(createdResume);
       } catch (error) {
@@ -21,8 +22,12 @@ export default async function handler(req, res) {
 
     case "GET":
       try {
-        const resumes = await ResumeRepository.getAllResumesByUserId(user_id);
-        res.status(200).json(resumes);
+        const resumes = await ResumeRepository.getAllResumesByUserId(userId);
+        if (resumes.length === 0) {
+          res.status(404).json({ error: "No resumes found for this user." });
+        } else {
+          res.status(200).json(resumes);
+        }
       } catch (error) {
         res.status(500).json({ error: error.message });
       }

@@ -6,10 +6,10 @@ class SkillRepository {
   }
 
   async createSkill(skill) {
-    const { resume_id, skill_name, proficiency, order_index } = skill;
+    const { resumeid, skillname, proficiency, orderindex } = skill;
     const result = await this.client`
-      INSERT INTO skills (resume_id, skill_name, proficiency, order_index)
-      VALUES (${resume_id}, ${skill_name}, ${proficiency}, ${order_index})
+      INSERT INTO skills (resumeid, skillname, proficiency, orderindex)
+      VALUES (${resumeid}, ${skillname}, ${proficiency}, ${orderindex})
       RETURNING *;
     `;
     return result[0];
@@ -29,21 +29,21 @@ class SkillRepository {
     return result;
   }
 
-  async getSkillsByResumeId(resume_id) {
+  async getSkillsByResumeId(resumeid) {
     const result = await this.client`
-      SELECT * FROM skills WHERE resume_id = ${resume_id};
+      SELECT * FROM skills WHERE resumeid = ${resumeid};
     `;
     return result;
   }
 
   async updateSkill(id, skill) {
-    const { skill_name, proficiency, order_index } = skill;
+    const { skillname, proficiency, orderindex } = skill;
     const result = await this.client`
       UPDATE skills SET 
-        skill_name = ${skill_name},
+        skillname = ${skillname},
         proficiency = ${proficiency},
-        order_index = ${order_index},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        orderindex = ${orderindex},
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
@@ -55,7 +55,7 @@ class SkillRepository {
     const result = await this.client`
       UPDATE skills SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }

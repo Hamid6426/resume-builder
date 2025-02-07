@@ -6,10 +6,10 @@ class ProjectRepository {
   }
 
   async createProject(project) {
-    const { resume_id, title, description, link, order_index } = project;
+    const { resumeid, title, description, link, orderindex } = project;
     const result = await this.client`
-      INSERT INTO projects (resume_id, title, description, link, order_index)
-      VALUES (${resume_id}, ${title}, ${description}, ${link}, ${order_index})
+      INSERT INTO projects (resumeid, title, description, link, orderindex)
+      VALUES (${resumeid}, ${title}, ${description}, ${link}, ${orderindex})
       RETURNING *;
     `;
     return result[0];
@@ -29,22 +29,22 @@ class ProjectRepository {
     return result;
   }
 
-  async getProjectsByResumeId(resume_id) {
+  async getProjectsByResumeId(resumeid) {
     const result = await this.client`
-      SELECT * FROM projects WHERE resume_id = ${resume_id};
+      SELECT * FROM projects WHERE resumeid = ${resumeid};
     `;
     return result;
   }
 
   async updateProject(id, project) {
-    const { title, description, link, order_index } = project;
+    const { title, description, link, orderindex } = project;
     const result = await this.client`
       UPDATE projects SET 
         title = ${title},
         description = ${description},
         link = ${link},
-        order_index = ${order_index},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        orderindex = ${orderindex},
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
@@ -56,7 +56,7 @@ class ProjectRepository {
     const result = await this.client`
       UPDATE projects SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }

@@ -24,7 +24,7 @@ const CreateResume = ({ disableButton }) => {
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.userId; // Use userId from the token
 
-      const resume = { user_id: userId, title, summary };
+      const resume = { userId, title, summary };
       const response = await axiosInstance.post(`/resumes/userId/${userId}`, resume);
     } catch (error) {
       console.error("Error creating resume:", error);

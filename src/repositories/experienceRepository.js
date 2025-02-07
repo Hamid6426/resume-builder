@@ -6,10 +6,10 @@ class ExperienceRepository {
   }
 
   async createExperience(experience) {
-    const { resume_id, company, position, start_date, end_date, description, order_index } = experience;
+    const { resumeid, company, position, startdate, enddate, description, orderindex } = experience;
     const result = await this.client`
-      INSERT INTO experiences (resume_id, company, position, start_date, end_date, description, order_index)
-      VALUES (${resume_id}, ${company}, ${position}, ${start_date}, ${end_date}, ${description}, ${order_index})
+      INSERT INTO experiences (resumeid, company, position, startdate, enddate, description, orderindex)
+      VALUES (${resumeid}, ${company}, ${position}, ${startdate}, ${enddate}, ${description}, ${orderindex})
       RETURNING *;
     `;
     return result[0];
@@ -29,24 +29,24 @@ class ExperienceRepository {
     return result;
   }
 
-  async getExperiencesByResumeId(resume_id) {
+  async getExperiencesByResumeId(resumeid) {
     const result = await this.client`
-      SELECT * FROM experiences WHERE resume_id = ${resume_id};
+      SELECT * FROM experiences WHERE resumeid = ${resumeid};
     `;
     return result;
   }
 
   async updateExperience(id, experience) {
-    const { company, position, start_date, end_date, description, order_index } = experience;
+    const { company, position, startdate, enddate, description, orderindex } = experience;
     const result = await this.client`
       UPDATE experiences SET 
         company = ${company},
         position = ${position},
-        start_date = ${start_date},
-        end_date = ${end_date},
+        startdate = ${startdate},
+        enddate = ${enddate},
         description = ${description},
-        order_index = ${order_index},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        orderindex = ${orderindex},
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
@@ -58,7 +58,7 @@ class ExperienceRepository {
     const result = await this.client`
       UPDATE experiences SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }

@@ -6,10 +6,10 @@ class SectionRepository {
   }
 
   async createSection(section) {
-    const { resume_id, type, order_index } = section;
+    const { resumeid, type, orderindex } = section;
     const result = await this.client`
-      INSERT INTO sections (resume_id, type, order_index)
-      VALUES (${resume_id}, ${type}, ${order_index})
+      INSERT INTO sections (resumeid, type, orderindex)
+      VALUES (${resumeid}, ${type}, ${orderindex})
       RETURNING *;
     `;
     return result[0];
@@ -29,20 +29,20 @@ class SectionRepository {
     return result;
   }
 
-  async getSectionsByResumeId(resume_id) {
+  async getSectionsByResumeId(resumeid) {
     const result = await this.client`
-      SELECT * FROM sections WHERE resume_id = ${resume_id};
+      SELECT * FROM sections WHERE resumeid = ${resumeid};
     `;
     return result;
   }
 
   async updateSection(id, section) {
-    const { type, order_index } = section;
+    const { type, orderindex } = section;
     const result = await this.client`
       UPDATE sections SET 
         type = ${type},
-        order_index = ${order_index},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        orderindex = ${orderindex},
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
@@ -54,7 +54,7 @@ class SectionRepository {
     const result = await this.client`
       UPDATE sections SET 
         ${this.client.join(fields, this.client`, `)},
-        updated_at = NOW() WHERE id = ${id} RETURNING *;
+        updatedate = NOW() WHERE id = ${id} RETURNING *;
     `;
     return result[0];
   }
