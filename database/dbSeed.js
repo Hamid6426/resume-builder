@@ -1,32 +1,35 @@
-const connectDB = require('./dbConfig');
+const { neon } = require('@neondatabase/serverless');
+require("dotenv").config();
+
+const connectDB = neon(process.env.NEON_DATABASE_URL);
 
 const seedDatabase = async () => {
   try {
 
     console.log("Seeding database...");
-    const db = sql();
+    const db = connectDB();
 
     // Insert initial users
     await db`
-      INSERT INTO users (name, username, email, password)
+      INSERT INTO users (name, userName, email, password)
       VALUES
-        ('John Doe', 'johndoe', 'john.doe@example.com', 'password1'),
-        ('Jane Smith', 'janesmith', 'jane.smith@example.com', 'password2'),
-        ('Alice Johnson', 'alicej', 'alice.johnson@example.com', 'password3');
+        ('John Doe', 'johnDoe', 'john.doe@example.com', 'password1'),
+        ('Jane Smith', 'janeSmith', 'jane.smith@example.com', 'password2'),
+        ('Alice Johnson', 'aliceJ', 'alice.johnson@example.com', 'password3');
     `;
 
     // Insert initial resumes
     await db`
-      INSERT INTO resumes (user_id, title, summary)
+      INSERT INTO resumes (userId, title, summary)
       VALUES
-        ((SELECT id FROM users WHERE username = 'johndoe'), 'John Doe Resume', 'Experienced software engineer...'),
-        ((SELECT id FROM users WHERE username = 'janesmith'), 'Jane Smith Resume', 'Skilled project manager...'),
-        ((SELECT id FROM users WHERE username = 'alicej'), 'Alice Johnson Resume', 'Creative graphic designer...');
+        ((SELECT id FROM users WHERE userName = 'johnDoe'), 'John Doe Resume', 'Experienced software engineer...'),
+        ((SELECT id FROM users WHERE userName = 'janeSmith'), 'Jane Smith Resume', 'Skilled project manager...'),
+        ((SELECT id FROM users WHERE userName = 'aliceJ'), 'Alice Johnson Resume', 'Creative graphic designer...');
     `;
 
     // Insert initial sections
     await db`
-      INSERT INTO sections (resume_id, type, order_index)
+      INSERT INTO sections (resumeId, type, orderIndex)
       VALUES
         ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Work Experience', 1),
         ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Education', 1),
@@ -35,7 +38,7 @@ const seedDatabase = async () => {
 
     // Insert initial work experiences
     await db`
-      INSERT INTO experiences (resume_id, company, position, start_date, end_date, description, order_index)
+      INSERT INTO experiences (resumeId, company, position, startDate, endDate, description, orderIndex)
       VALUES
         ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Tech Corp', 'Software Engineer', '2020-01-01', '2023-01-01', 'Developed various applications...', 1),
         ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Business Inc', 'Project Manager', '2018-01-01', '2022-01-01', 'Managed several projects...', 1);
@@ -43,7 +46,7 @@ const seedDatabase = async () => {
 
     // Insert initial education
     await db`
-      INSERT INTO education (resume_id, school, degree, start_date, end_date, order_index)
+      INSERT INTO education (resumeId, school, degree, startDate, endDate, orderIndex)
       VALUES
         ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Art University', 'BFA in Graphic Design', '2015-01-01', '2019-01-01', 1),
         ((SELECT id FROM resumes WHERE title = 'Jane Smith Resume'), 'Business School', 'MBA', '2014-01-01', '2016-01-01', 1);
@@ -51,7 +54,7 @@ const seedDatabase = async () => {
 
     // Insert initial skills
     await db`
-      INSERT INTO skills (resume_id, skill_name, proficiency, order_index)
+      INSERT INTO skills (resumeId, skillName, proficiency, orderIndex)
       VALUES
         ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'JavaScript', 'Advanced', 1),
         ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Photoshop', 'Advanced', 1);
@@ -59,7 +62,7 @@ const seedDatabase = async () => {
 
     // Insert initial projects
     await db`
-      INSERT INTO projects (resume_id, title, description, link, order_index)
+      INSERT INTO projects (resumeId, title, description, link, orderIndex)
       VALUES
         ((SELECT id FROM resumes WHERE title = 'John Doe Resume'), 'Project Alpha', 'Developed a web application...', 'http://example.com/alpha', 1),
         ((SELECT id FROM resumes WHERE title = 'Alice Johnson Resume'), 'Design Portfolio', 'Showcase of design work...', 'http://example.com/portfolio', 1);
@@ -67,10 +70,10 @@ const seedDatabase = async () => {
 
     // Insert initial activity logs
     await db`
-      INSERT INTO activity_logs (user_id, action, details)
+      INSERT INTO activityLogs (userId, action, details)
       VALUES
-        ((SELECT id FROM users WHERE username = 'johndoe'), 'Login', 'User logged in'),
-        ((SELECT id FROM users WHERE username = 'janesmith'), 'Profile Update', 'Updated profile information');
+        ((SELECT id FROM users WHERE userName = 'johnDoe'), 'Login', 'User logged in'),
+        ((SELECT id FROM users WHERE userName = 'janeSmith'), 'Profile Update', 'Updated profile information');
     `;
 
     console.log("Database seeded successfully");

@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:setup": "next src/config/dbSetup.js",
-    "db:seed": "next src/config/dbSeed.js"
+    "db:setup": "node database/dbSetup.js",
+    "db:seed": "node database/dbSeed.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

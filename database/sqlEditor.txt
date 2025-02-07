@@ -1,0 +1,159 @@
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    userName TEXT UNIQUE NOT NULL,  
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idxUsersEmail ON users(email);
+
+CREATE TABLE IF NOT EXISTS resumes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    userId UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    summary TEXT,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idxResumesUserId ON resumes(userId);
+
+CREATE TABLE IF NOT EXISTS sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resumeId UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    orderIndex INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS experiences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resumeId UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    company TEXT NOT NULL,
+    position TEXT NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE,
+    description TEXT,
+    orderIndex INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idxExperiencesResumeId ON experiences(resumeId);
+
+CREATE TABLE IF NOT EXISTS education (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resumeId UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    school TEXT NOT NULL,
+    degree TEXT NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE,
+    orderIndex INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idxEducationResumeId ON education(resumeId);
+
+CREATE TABLE IF NOT EXISTS skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resumeId UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    skillName TEXT NOT NULL,
+    proficiency TEXT CHECK (proficiency IN ('Beginner', 'Intermediate', 'Advanced')) NOT NULL,
+    orderIndex INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idxSkillsResumeId ON skills(resumeId);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resumeId UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    link TEXT,
+    orderIndex INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT now(),
+    updatedAt TIMESTAMP DEFAULT now(),
+    deletedAt TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idxProjectsResumeId ON projects(resumeId);
+
+CREATE TABLE IF NOT EXISTS activityLogs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    userId UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    details TEXT,
+    createdAt TIMESTAMP DEFAULT now()
+);
+
+---
+
+INSERT INTO users (name, userName, email, password)
+VALUES
+    ('Alice Johnson', 'alicej', 'alice@example.com', 'password123'),
+    ('Bob Smith', 'bobsmith', 'bob@example.com', 'securepassword'),
+    ('Charlie Brown', 'charlieb', 'charlie@example.com', 'mypassword');
+
+INSERT INTO resumes (userId, title, summary)
+VALUES
+    ((SELECT id FROM users WHERE userName='alicej'), 'Software Engineer Resume', 'Experienced software engineer with a passion for developing innovative programs, and a proven ability to troubleshoot and solve complex problems.'),
+    ((SELECT id FROM users WHERE userName='bobsmith'), 'Data Analyst Resume', 'Data analyst with expertise in interpreting and analyzing data to drive successful business solutions and support strategic decision making.'),
+    ((SELECT id FROM users WHERE userName='charlieb'), 'Project Manager Resume', 'Project manager with a strong track record of successful projects, adept at coordinating cross-functional teams and delivering projects on time and within budget.');
+
+INSERT INTO sections (resumeId, type, orderIndex)
+VALUES
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Experience', 1),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Education', 2),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Skills', 3),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Experience', 1),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Education', 2),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Skills', 3),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Experience', 1),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Education', 2),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Projects', 3);
+
+INSERT INTO experiences (resumeId, company, position, startDate, endDate, description, orderIndex)
+VALUES
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Tech Corp', 'Software Developer', '2019-01-01', NULL, 'Developing and maintaining software applications, working closely with the design team to implement user-friendly features, and optimizing performance.', 1),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Innovative Solutions', 'Junior Developer', '2017-06-01', '2018-12-31', 'Assisted in the development of web-based applications and performed code reviews to ensure quality.', 2),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Data Inc.', 'Data Analyst', '2018-05-01', NULL, 'Analyzing and interpreting complex data sets, creating detailed reports, and presenting findings to stakeholders.', 1),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Market Insights', 'Junior Data Analyst', '2016-09-01', '2018-04-30', 'Supported senior analysts in data collection, cleaning, and analysis.', 2),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Strategic Solutions', 'Project Manager', '2020-03-01', NULL, 'Leading project teams, managing schedules, budgets, and risks, and ensuring project objectives are met.', 1),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Global Projects', 'Assistant Project Manager', '2017-08-01', '2020-02-29', 'Assisted in the planning and execution of projects, coordinated communication between stakeholders, and tracked project progress.', 2);
+
+INSERT INTO education (resumeId, school, degree, startDate, endDate, orderIndex)
+VALUES
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'University of Technology', 'Bachelor of Science in Computer Science', '2015-09-01', '2019-05-01', 1),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Business School', 'Master of Business Administration', '2016-09-01', '2018-05-01', 1),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'State University', 'Bachelor of Science in Statistics', '2014-09-01', '2018-05-01', 1);
+
+INSERT INTO skills (resumeId, skillName, proficiency, orderIndex)
+VALUES
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Java', 'Advanced', 1),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'JavaScript', 'Intermediate', 2),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'SQL', 'Advanced', 3),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Python', 'Advanced', 1),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'SQL', 'Intermediate', 2),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Data Visualization', 'Advanced', 3),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Project Planning', 'Advanced', 1),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Risk Management', 'Intermediate', 2),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Team Leadership', 'Advanced', 3);
+
+INSERT INTO projects (resumeId, title, description, link, orderIndex)
+VALUES
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Project A', 'Managed the implementation of a new software system, coordinating with various departments to ensure a smooth transition.', 'http://example.com/projectA', 1),
+    ((SELECT id FROM resumes WHERE title='Project Manager Resume'), 'Project B', 'Led a team to develop a marketing strategy that increased sales by 20% in the first quarter.', 'http://example.com/projectB', 2),
+    ((SELECT id FROM resumes WHERE title='Software Engineer Resume'), 'Web Application', 'Developed a full-stack web application using Java and JavaScript, enabling users to track their tasks and manage projects.', 'http://example.com/webapp', 1),
+    ((SELECT id FROM resumes WHERE title='Data Analyst Resume'), 'Data Dashboard', 'Created an interactive data dashboard using Python and SQL, providing real-time insights and visualizations.', 'http://example.com/dashboard', 1);
+
+INSERT INTO activityLogs (userId, action, details)
+VALUES
+    ((SELECT id FROM users WHERE userName='alicej'), 'Created a new resume', 'Alice created a Software Engineer Resume.'),
+    ((SELECT id FROM users WHERE userName='bobsmith'), 'Updated profile', 'Bob updated his email address.'),
+    ((SELECT id FROM users WHERE userName='charlieb'), 'Added a project', 'Charlie added Project A to his Project Manager Resume.');
