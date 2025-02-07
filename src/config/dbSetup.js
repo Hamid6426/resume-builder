@@ -1,7 +1,4 @@
-const { neon } = require('@neondatabase/serverless');
-require("dotenv").config();
-
-const connectDB = neon(process.env.NEON_DATABASE_URL);
+import connectDB from "./dbConfig";
 
 const createTables = async () => {
   try {
